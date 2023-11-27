@@ -66,4 +66,4 @@ jobs:
         with:
           app-name: 'simple-sql-agent'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_517DA0D7B1544B54BEF702607932B878 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_3ACB0165D59C4377B489479AF9088FD3 }}
