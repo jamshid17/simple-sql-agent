@@ -58,4 +58,4 @@ Question: {input}
 second_tool_description = "Input to this tool is a comma-separated list of tables, \
         output is the schema and sample rows for those tables. Be sure that the tables \
             actually exist by calling sql_db_list_tables first! YOU MUST put input values \
-                without any quotes. For example Input: table1, table2, table3"
+                without any quotes and there should be comma and space between table names. For example Input: table1, table2, table3"

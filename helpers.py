@@ -2,6 +2,7 @@ from snowflake.sqlalchemy import URL
 from sqlalchemy import create_engine
 from decouple import config
 import streamlit as st
+import pandas as pd
 
 
 @st.cache_resource
@@ -18,3 +19,9 @@ def get_engine():
     )
     engine = create_engine(url)
     return engine
+
+@st.cache
+def get_df_file(connection, output_table_name):
+    sql_query = f"SELECT * FROM TESTFORADF.PUBLIC.{output_table_name.upper()}"
+    df = pd.read_sql(sql_query, connection)
+    return df.to_csv().encode('utf-8')
