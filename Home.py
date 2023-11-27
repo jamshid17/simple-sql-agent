@@ -6,6 +6,8 @@ from sqlalchemy import create_engine
 from decouple import config
 from datetime import datetime
 from helpers import get_engine
+import ast 
+import pandas as pd 
 
 st.title("☃️ SQL Agent")
 st.button("Clear history", on_click=clean_chat_memory)
@@ -29,3 +31,8 @@ if chat_input:
         output = response["output"]
         with st.chat_message('ai'):
             st.write(output) 
+            last_observation = response["intermediate_steps"][-1][1]
+            if last_observation.startswith("DF: "):
+                last_observation_data = ast.literal_eval(last_observation.split("DF: ")[1])
+                dataframe = pd.DataFrame(last_observation_data)
+                st.dataframe(dataframe)

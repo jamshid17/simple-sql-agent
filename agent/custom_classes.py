@@ -3,6 +3,7 @@ from langchain.agents import (
 )
 from langchain.prompts import BaseChatPromptTemplate
 from langchain.tools import BaseTool
+from langchain import SQLDatabase
 from langchain.schema import AgentAction, AgentFinish, SystemMessage
 from typing import List, Union
 import re
@@ -89,3 +90,33 @@ class CustomOutputParser(AgentOutputParser):
         print(action_input, " action input")
         # Return the action and action input
         return AgentAction(tool=action, tool_input=action_input.strip(" ").strip('"'), log=llm_output)
+    
+
+class CustomSQLDatabase(SQLDatabase):
+    def run(
+        self,
+        command: str,
+        fetch = "all",
+    ) -> str:
+        """Execute a SQL command and return a string representing the results.
+
+        If the statement returns rows, a string of the results is returned.
+        If the statement returns no rows, an empty string is returned.
+        """
+        result = self._execute(command, fetch)
+        # Convert columns values to string to avoid issues with sqlalchemy
+        # truncating text
+        from collections import defaultdict
+        values = defaultdict(list)
+        for r in result:
+            for key, value in r.items():
+                values[key].append(value)
+        values_dict = dict(values)
+        for x in [list, "list"]:
+            if x in values_dict.keys():
+                values_dict.pop(x)
+
+        if not values_dict:
+            return ""
+        else:
+            return "DF: " + str(values_dict)

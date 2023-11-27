@@ -22,6 +22,7 @@ Here are 6 critical rules for the interaction you must abide:
 2. If you have to return choices or options, present them one more time at the end of the response in new line in this specific format so I can parse it: \n<list>car,balance,table</list>
 3. If user asks you to produce output table, make sure to ask the name for desired output table.
 4. If you produced output table, you MUST write output table name at the end of the message: \n<output_name>table_name</output_name>
+5. If your Observation (the result of the action) starts with "DF: ", DO NOT RETURN the details of that observation as your final answer, just return "Here it is"
 </rules>
 
 

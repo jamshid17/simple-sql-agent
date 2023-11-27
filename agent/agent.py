@@ -7,11 +7,10 @@ from langchain.agents.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
 from langchain.utilities import SQLDatabase
 from decouple import config
 import os
-from .custom_classes import CustomOutputParser, CustomPromptTemplate
+from .custom_classes import CustomOutputParser, CustomPromptTemplate, CustomSQLDatabase
 import streamlit as st
 from sqlalchemy.engine.base import Connection, Engine
 from langchain.memory.chat_message_histories import RedisChatMessageHistory, StreamlitChatMessageHistory
-
 
 os.environ["OPENAI_API_TYPE"] = config("OPENAI_API_TYPE")
 os.environ["OPENAI_API_BASE"] = config("OPENAI_API_BASE")
@@ -23,7 +22,7 @@ os.environ["OPENAI_API_KEY"] = config("OPENAI_API_KEY")
 @st.cache_resource(hash_funcs={Engine:id})
 def connect_with_langchain_db(engine):
     print("here")
-    db = SQLDatabase(engine)
+    db = CustomSQLDatabase(engine)
     return db
 
 
