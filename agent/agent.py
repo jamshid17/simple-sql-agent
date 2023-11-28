@@ -27,7 +27,7 @@ def connect_with_langchain_db(engine):
 
 
 def create_agent(snowflake_db):
-    llm_chat_model = AzureChatOpenAI(deployment_name="gpt-4", temperature=0.1)
+    llm_chat_model = AzureChatOpenAI(deployment_name="gpt-4", temperature=0)
     # db = SQLDatabase(connection, include_tables=include_tables)
     toolkit = SQLDatabaseToolkit(
         db=snowflake_db, llm=AzureChatOpenAI(deployment_name="gpt-4", temperature=0)
@@ -72,9 +72,10 @@ def create_agent(snowflake_db):
         memory=memory,
         return_intermediate_steps=True,
     )
-    return agent_executor, memory
+    return agent_executor
 
 
 def clean_chat_memory():
-    message_history = StreamlitChatMessageHistory()
-    message_history.clear()
+    # message_history = StreamlitChatMessageHistory()
+    # message_history.clear()
+    st.session_state.chat_memory = []
