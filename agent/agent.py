@@ -22,7 +22,7 @@ os.environ["OPENAI_API_KEY"] = config("OPENAI_API_KEY")
 @st.cache_resource(hash_funcs={Engine:id})
 def connect_with_langchain_db(engine):
     print("here")
-    db = CustomSQLDatabase(engine)
+    db = CustomSQLDatabase(engine, include_tables=["balance", "cash", "investment", "turnover", "joined_balance"])
     return db
 
 
