@@ -3,10 +3,11 @@ from langchain.agents import (
 )
 from langchain.prompts import BaseChatPromptTemplate
 from langchain.tools import BaseTool
-from langchain import SQLDatabase
+from langchain.utilities import SQLDatabase
 from langchain.schema import AgentAction, AgentFinish, SystemMessage
 from typing import List, Union
 import re
+from helpers import last_five_actions_text
 
 
 # Set up a prompt template
@@ -28,10 +29,14 @@ class CustomPromptTemplate(BaseChatPromptTemplate):
             kwargs["history"] = history_text
         intermediate_steps = kwargs.pop("intermediate_steps")
         thoughts = ""
+
+        last_five_actions = last_five_actions_text()
         for action, observation in intermediate_steps:
             thoughts += action.log
             thoughts += f"\nObservation: {observation}\nThought: "
+            
         # Set the agent_scratchpad variable to that value
+        kwargs["last_five_actions"] = last_five_actions
         kwargs["agent_scratchpad"] = thoughts
         # Create a tools variable from the list of tools provided
         kwargs["tools"] = "\n\n".join([f"{tool.name}: {tool.description}" for tool in self.tools])
@@ -119,4 +124,6 @@ class CustomSQLDatabase(SQLDatabase):
         if not values_dict:
             return ""
         else:
-            return "DF: " + str(values_dict)
+            return "DataFrame: " + str(values_dict)
+        
+    

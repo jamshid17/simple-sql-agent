@@ -4,13 +4,13 @@ from langchain.agents import AgentExecutor, LLMSingleActionAgent, AgentOutputPar
 from langchain.chains.llm import LLMChain
 from langchain.chat_models import AzureChatOpenAI
 from langchain.agents.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
-from langchain.utilities import SQLDatabase
 from decouple import config
 import os
 from .custom_classes import CustomOutputParser, CustomPromptTemplate, CustomSQLDatabase
 import streamlit as st
 from sqlalchemy.engine.base import Connection, Engine
 from langchain.memory.chat_message_histories import RedisChatMessageHistory, StreamlitChatMessageHistory
+
 
 os.environ["OPENAI_API_TYPE"] = config("OPENAI_API_TYPE")
 os.environ["OPENAI_API_BASE"] = config("OPENAI_API_BASE")
@@ -22,12 +22,12 @@ os.environ["OPENAI_API_KEY"] = config("OPENAI_API_KEY")
 @st.cache_resource(hash_funcs={Engine:id})
 def connect_with_langchain_db(engine):
     print("here")
-    db = CustomSQLDatabase(engine, include_tables=["balance", "cash", "investment", "turnover", "joined_balance"])
+    db = CustomSQLDatabase(engine)
     return db
 
 
 def create_agent(snowflake_db):
-    llm_chat_model = AzureChatOpenAI(deployment_name="gpt-4", temperature=0)
+    llm_chat_model = AzureChatOpenAI(deployment_name="gpt-4-32k", temperature=0)
     # db = SQLDatabase(connection, include_tables=include_tables)
     toolkit = SQLDatabaseToolkit(
         db=snowflake_db, llm=AzureChatOpenAI(deployment_name="gpt-4", temperature=0)
@@ -78,4 +78,6 @@ def create_agent(snowflake_db):
 def clean_chat_memory():
     # message_history = StreamlitChatMessageHistory()
     # message_history.clear()
+    with open("last_query.txt", "w") as f:
+        f.write("")
     st.session_state.chat_memory = []

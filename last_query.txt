@@ -1,0 +1,2 @@
+Action tool: sql_db_query
+Input: SELECT * FROM alamo_receivable LIMIT 10;
