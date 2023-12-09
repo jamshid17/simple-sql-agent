@@ -3,6 +3,7 @@ from sqlalchemy import create_engine
 from decouple import config
 import streamlit as st
 import pandas as pd
+import re 
 
 
 @st.cache_resource
@@ -39,39 +40,30 @@ def get_df_file(output_table_name):
     return df.to_csv().encode('utf-8')
 
 
-def write_to_last_query_text(response):
-    last_five_actions = last_five_actions_text()
-    intermediate_steps = response["intermediate_steps"]
-    if len(intermediate_steps) != 0:
-        last_action = intermediate_steps[-1][0]
-        last_action_log = f"Action tool: {last_action.tool}\nInput: {last_action.tool_input}"
-        if len(last_five_actions.split("\n\n")) == 5: 
-            last_five_actions = "".join(action_log + "\n\n" for action_log in last_five_actions.split("\n\n")[1:])[:-2]
-            last_five_actions = f"{last_five_actions}\n\n{last_action_log}"
-        elif last_five_actions == "":
-            last_five_actions = last_action_log
-        else:
-            last_five_actions = f"{last_five_actions}\n\n{last_action_log}"
-
-        with open("last_query.txt", "w") as f: 
-            f.write(last_five_actions)
-
-
-def last_five_actions_text():
-    try:
-        with open("last_query.txt", "r") as last_query_file:
-            last_action_input = last_query_file.read()
-    except Exception as e:
-        print(e, ' exception')
-        last_action_input = ''
-    return last_action_input
-
 def get_intermediate_steps_str(response):
     final_str = ''
     for step in response["intermediate_steps"]:
         agent_action, observation = step
         if observation.startswith("DataFrame: "):
             observation = "DataFrame below"
-        final_str += f"{agent_action.log}\n\nObservation: {observation}\n\n"
-    
+        action_log = agent_action.log
+
+        final_str += f"{action_log}\n\nObservation: {observation}\n\n"
     return final_str
+
+
+def get_output_parts(response, connection):
+    pattern = r"```sql\n(.*?)\n```"
+    
+    match = re.search(pattern, response, re.DOTALL)
+    dataframe = None
+    
+    if match:
+        sql_query = match.group(1)
+        if not sql_query.startswith("CREATE"):
+            dataframe = pd.read_sql(sql_query, connection)
+        before_sql, _, after_sql = response.partition(match.group(0))
+        
+        return before_sql.strip(), dataframe, after_sql.strip()
+    else:
+        return response, None, None

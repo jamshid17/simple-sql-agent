@@ -7,7 +7,6 @@ from langchain.utilities import SQLDatabase
 from langchain.schema import AgentAction, AgentFinish, SystemMessage
 from typing import List, Union
 import re
-from helpers import last_five_actions_text
 
 
 # Set up a prompt template
@@ -20,23 +19,20 @@ class CustomPromptTemplate(BaseChatPromptTemplate):
     def format_messages(self, **kwargs) -> str:
         # Get the intermediate steps (AgentAction, Observation tuples)
         # Format them in a particular way
+        #addding file_path
         history_text = ""
-
         if "history" in kwargs:
             history_messages = kwargs.pop("history")
             for history_message in history_messages:
                 history_text += f"{history_message.type}: {history_message.content}\n"
             kwargs["history"] = history_text
+        
         intermediate_steps = kwargs.pop("intermediate_steps")
         thoughts = ""
-
-        last_five_actions = last_five_actions_text()
         for action, observation in intermediate_steps:
             thoughts += action.log
             thoughts += f"\nObservation: {observation}\nThought: "
-            
         # Set the agent_scratchpad variable to that value
-        kwargs["last_five_actions"] = last_five_actions
         kwargs["agent_scratchpad"] = thoughts
         # Create a tools variable from the list of tools provided
         kwargs["tools"] = "\n\n".join([f"{tool.name}: {tool.description}" for tool in self.tools])
@@ -45,7 +41,7 @@ class CustomPromptTemplate(BaseChatPromptTemplate):
         formatted = self.template.format(**kwargs)
         return [SystemMessage(content=formatted)]
 
-
+        
 class CustomOutputParser(AgentOutputParser):
 
     def parse(self, llm_output: str) -> Union[AgentAction, AgentFinish]:
@@ -62,7 +58,7 @@ class CustomOutputParser(AgentOutputParser):
             if output_name_match:
                 output_first_match = output_name_match.group(0)
                 output_table_name = output_first_match.split("<output_name>")[1].split("</output_name>")[0]
-                # final_answer_text = final_answer_text.replace(output_first_match, '')
+                final_answer_text = final_answer_text.replace(output_first_match, '')
             else:
                 output_table_name = None
                 
@@ -70,10 +66,9 @@ class CustomOutputParser(AgentOutputParser):
                 options_first_match = options_match.group(0)
                 options_text = options_first_match.split("<list>")[1].split("</list>")[0]
                 options = options_text.split(",")
-                # final_answer_text = final_answer_text.replace(options_first_match, '')
+                final_answer_text = final_answer_text.replace(options_first_match, '')
             else:
                 options = []
-            
             return AgentFinish(
                 # Return values is generally always a dictionary with a single `output` key
                 # It is not recommended to try anything else at the moment :)
@@ -84,7 +79,6 @@ class CustomOutputParser(AgentOutputParser):
                 },
                 log=llm_output,
             )
-        
         # Parse out the action and action input
         regex = r"Action\s*\d*\s*:(.*?)\nAction\s*\d*\s*Input\s*\d*\s*:[\s]*(.*)"
         match = re.search(regex, llm_output, re.DOTALL)
@@ -92,9 +86,8 @@ class CustomOutputParser(AgentOutputParser):
             raise ValueError(f"Could not parse LLM output: `{llm_output}`")
         action = match.group(1).strip()
         action_input = match.group(2)
-        print(action_input, " action input")
         # Return the action and action input
-        return AgentAction(tool=action, tool_input=action_input.strip(" ").strip('"'), log=llm_output)
+        return AgentAction(tool=action, tool_input=action_input.strip(" ").strip('"'), log=llm_output)   
     
 
 class CustomSQLDatabase(SQLDatabase):
