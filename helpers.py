@@ -67,3 +67,5 @@ def get_output_parts(response, connection):
         return before_sql.strip(), dataframe, after_sql.strip()
     else:
         return response, None, None
+    
+    
